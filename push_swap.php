@@ -7,17 +7,31 @@ class Sorter {
 
 	public function __construct($argv)
 	{
+		$sTime = microtime(true)*1000;
 		$this->parseList($argv);
 
 		$this->listLength = count($this->la);
 		$this->position = 0;
 		$this->operations = 0;
-		$this->operationsByLine = 16;
-		$this->sort();
+		$this->operationsByLine = 31;
+		$this->sort4();
 		$this->lb = [];
 
+		// for ($i=0;$i<6;$i++)
+		// 	var_dump($this->getPosValue($i));
 
-		echo "\n";
+		$last = -1000000000000000000000000;
+		
+		echo "\nChecking sort validity...";
+		for ($i = 0; $i < $this->listLength; $i++) {
+			if ($this->la[$i] < $last)
+				exit("tf not able to sort\n" . $this->la[$i] . PHP_EOL . $last . PHP_EOL);
+			$last = $this->la[$i];
+		}
+		echo " PASSED";
+
+
+		echo "\n\nDone sorting " . $this->listLength . " entries in " . $this->operations . " operations(".strval(round((microtime(true)*1000)-$sTime, 2))."ms)\n";
 	}
 
 	private function parseList(array $argv) : void
@@ -31,28 +45,108 @@ class Sorter {
 		$this->lb = [];
 	}
 
-	private function sort() : void
+	private function sort4() : void
 	{
 		//return;
+		$turns = 0;
 		$sorted = false;
-		while (!$sorted) {
-			//
-			break;
-			$checkSorted;
+		$lowStored = 0;
+		while (true) {
+			//echo "tru";
+			// error exit condition
+			if ($turns > $this->listLength) {
+				throw new Error("Shouldn't happen");
+				break;
+			}
+
+			// clean exit condition
+			if (count($this->la) == 0) {
+				echo "\n";
+				$this->rrb();
+
+				for ($i=0; $i<$lowStored; $i++)
+					$this->rrb();
+
+				while(count($this->lb) > 0) {
+					$this->pa();
+					$this->rrb();
+				}
+				break;
+			}
+
+
+			$highest = null;
+			$highestIndex = 0;
+			$lowest = null;
+			$lowestIndex = 0;
+
+			for ($i = 0; $i < count($this->la); $i++) {
+				if (is_null($highest) || $this->la[$i] > $highest) {
+					$highest = $this->la[$i];
+					$highestIndex = $i;
+				}
+				if (is_null($lowest) || $this->la[$i] < $lowest) {
+					$lowest = $this->la[$i];
+					$lowestIndex = $i;
+				}
+			}
+
+			// for highest
+			$highDistanceUp = $highestIndex;
+			$highDistanceDown = count($this->la)-$highestIndex;
+
+			$highDirection = $highDistanceUp < $highDistanceDown ? 1 : -1;
+			$highDistance = $highDistanceUp < $highDistanceDown ? $highDistanceUp : $highDistanceDown;
+
+			$direction = $highDirection;
+			$distance = $highDistance;
+			$target = "highest";
+
+			// for lowest
+			if (!is_null($lowest) && $lowestIndex != $highestIndex) {
+				$lowDistanceUp = $lowestIndex;
+				$lowDistanceDown = count($this->la)-$lowestIndex;
+
+				$lowDirection = $lowDistanceUp < $lowDistanceDown ? 1 : -1;
+				$lowDistance = $lowDistanceUp < $lowDistanceDown ? $lowDistanceUp : $lowDistanceDown;
+
+				if ($lowDistance < $highDistance) {
+					$direction = $lowDirection;
+					$distance = $lowDistance;
+					$target = "lowest";
+				}
+			}
+
+			for ($i = 0; $i < $distance; $i++) {
+				if ($direction == 1)
+					$this->ra();
+				else
+					$this->rra();
+			}
+
+
+			$this->pb();
+			if ($target == "lowest") {
+				$lowStored++;
+				$this->rb();
+			}
+
+
+			$turns++;
 		}
-		//
+		echo "\n\nSort result: " . implode(" | ", $this->la) . PHP_EOL;
 	}
 
-	private function checkSorted() : bool | int
+	private function getFirstError() : int | null
 	{
-		if (count($this->lb) > 0)
-			exit("lb not empty\n");
-		$highest = $la[0];
-
-		for ($i = 1; $i < $this->listLength; $i++) {
-			break;
-			//
+		for ($i = 0; $i < $this->listLength-1; $i++) {
+			//var_dump($this->la[$i], $this->la[$i+1]);
+			$isSorted = ($this->la[$i] <= $this->la[$i+1]);
+			// var_dump($isSorted);
+			if (!$isSorted)
+				return $i;
 		}
+		return null;
 	}
 
 	private function getPosValue(int $pos) : int
@@ -101,13 +195,11 @@ class Sorter {
 
 	private function sref(array &$arr) : void
 	{
-		if (count($arr) > 1) {
-			$tmp = $arr[0];
-			$arr[0] = $arr[1];
-			$arr[1] = $tmp;
-		} else {
-			echo "weird";
-		}
+		if (count($arr) < 1)
+			return;
+		$tmp = $arr[0];
+		$arr[0] = $arr[1];
+		$arr[1] = $tmp;
 	}
 
 	private function pa() : void
@@ -126,13 +218,13 @@ class Sorter {
 	{
 		if (count($source) == 0)
 			return;
-		echo "==============================\n";
-		print_r($this->la);
-		print_r($this->lb);
+		// echo "==============================\n";
+		// print_r($this->la);
+		// print_r($this->lb);
 		$transfered = array_shift($source);
 		array_unshift($target, $transfered);
-		print_r($this->la);
-		print_r($this->lb);
+		// print_r($this->la);
+		// print_r($this->lb);
 	}
 
 	private function ra() : void
