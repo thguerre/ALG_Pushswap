@@ -3,13 +3,23 @@
 
 class Sorter {
 
-	private $la, $lb, $listLength, $position, $operations;
+	private $la, $lb, $listLength, $position, $operations, $colors;
+	private $rainbow = [
+		"default" => "39",
+		"red" => "31",
+		"yellow" => "33",
+		"green" => "32",
+		"cyan" => "36",
+		"blue" => "34",
+		"magenta" => "35"
+	];
 
 	public function __construct($argv)
 	{
 		$sTime = microtime(true)*1000;
 		$this->parseList($argv);
 
+		$this->colors = array_keys($this->rainbow);
 		$this->listLength = count($this->la);
 		$this->position = 0;
 		$this->operations = 0;
@@ -22,16 +32,29 @@ class Sorter {
 
 		$last = -1000000000000000000000000;
 		
-		echo "\nChecking sort validity...";
+		echo "\nChecking sort validity... ";
 		for ($i = 0; $i < $this->listLength; $i++) {
-			if ($this->la[$i] < $last)
-				exit("tf not able to sort\n" . $this->la[$i] . PHP_EOL . $last . PHP_EOL);
+			if ($this->la[$i] < $last) {
+				$this->echoColor("FAILED\n", "red");
+				exit();
+			}
+				//exit("tf not able to sort\n" . $this->la[$i] . PHP_EOL . $last . PHP_EOL);
 			$last = $this->la[$i];
 		}
-		echo " PASSED";
+		echo "\033[32mPASSED\033[39m";
 
 
-		echo "\n\nDone sorting " . $this->listLength . " entries in " . $this->operations . " operations(".strval(round((microtime(true)*1000)-$sTime, 2))."ms)\n";
+		echo "\n\nDone sorting " . $this->listLength . " entries in " . $this->operations . " operations(".strval(round((microtime(true)*1000)-$sTime, 2))."ms)\n\n";
+	}
+
+	private function getColorEscaper($color) : string
+	{
+		return "\033[".$this->rainbow[$color]."m";
+	}
+
+	private function echoColor(string $str, string $color = "default") : void
+	{
+		echo $this->getColorEscaper($color).$str.$this->getColorEscaper("default");
 	}
 
 	private function parseList(array $argv) : void
@@ -51,6 +74,7 @@ class Sorter {
 		$turns = 0;
 		$sorted = false;
 		$lowStored = 0;
+		$lastProgress = microtime(true);
 		while (true) {
 			//echo "tru";
 			// error exit condition
@@ -131,10 +155,32 @@ class Sorter {
 				$this->rb();
 			}
 
+			if (microtime(true) > $lastProgress + 3) {
+				$lastProgress = microtime(true);
+				$sorted = count($this->lb);
+				var_dump(pow($sorted/$this->listLength, 2)*100);
+				echo "Progress: "."".$sorted."/".$this->listLength. " ".round(100-(1-pow($sorted/$this->listLength, 4))*100)."%".PHP_EOL;
+			}
 
 			$turns++;
 		}
-		echo "\n\nSort result: " . implode(" | ", $this->la) . PHP_EOL;
+
+		//straight version
+		//echo "\n\nSort result: " . implode(" | ", $this->la) . PHP_EOL;
+		
+		//i guess this is a progress ?
+		echo "\n\nSort result: ";
+		$displayed = 0;
+		while ($displayed < $this->listLength) {
+			if ($displayed > 0)
+				echo " | ";
+			// var_dump($displayed%count($this->rainbow));
+			// var_dump($this->colors);
+			$this->echoColor($this->la[$displayed], $this->colors[$displayed%count($this->rainbow)]);
+			$displayed++;
+		}
+		echo "\n";
+		// . implode(" | ", $this->la) . PHP_EOL;
 	}
 
 	private function getFirstError() : int | null
@@ -162,10 +208,10 @@ class Sorter {
 
 	private function printOperation(string $operation) : void
 	{
-		$firstOfLine = $this->operations % $this->operationsByLine == 0;
-		echo ($firstOfLine ? "\n" : "")
-			. (!$firstOfLine ? " " : "")
-			. $operation;
+		// $firstOfLine = $this->operations % $this->operationsByLine == 0;
+		// echo ($firstOfLine ? "\n" : "")
+		// 	. (!$firstOfLine ? " " : "")
+		// 	. $operation;
 		$this->operations++;
 	}
 
