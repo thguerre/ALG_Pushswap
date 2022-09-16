@@ -2,9 +2,9 @@
 <?php
 
 // choose files and dataset to be generated
-$ranges = [5, 10, 50, 100, 500, 1000, 5000, 10000];
+$ranges = [5, 10, 50, 100, 500, 1000, 5000, 6000, 7500, 10000];
 
-// start and naming format for each file, here al file will be sh files
+// start and naming format for each file, here all files32 will be sh files
 $initiator  = "#!/usr/bin/sh\n./push_swap.php";
 $directory  = "./testers";
 $filePrefix = "test_";

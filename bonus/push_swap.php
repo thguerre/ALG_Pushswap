@@ -158,8 +158,14 @@ class Sorter {
 			if (microtime(true) > $lastProgress + 3) {
 				$lastProgress = microtime(true);
 				$sorted = count($this->lb);
-				var_dump(pow($sorted/$this->listLength, 2)*100);
-				echo "Progress: "."".$sorted."/".$this->listLength. " ".round(100-(1-pow($sorted/$this->listLength, 4))*100)."%".PHP_EOL;
+				$fraction = $sorted/$this->listLength;
+				$corrected = sqrt($fraction);
+				$corrected = sin($fraction*1.5);
+				$steepness = 2;
+				$corrected = atan($steepness*sin($fraction*1.5))/atan($steepness);
+				//sin($);
+				//var_dump($fraction, $corrected);
+				echo "Progress: "."".$sorted."/".$this->listLength. " - ".round(100*$corrected, 1)."%".PHP_EOL;
 			}
 
 			$turns++;
